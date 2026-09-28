@@ -46,12 +46,13 @@ public class BloodLinkModel {
     private LocalDate lastDonationDate;
 
     @Column(name = "available")
-    private boolean available = true;
+    private Boolean available = true;
 
     public BloodLinkModel() {
+        this.available = true;
     }
 
-    public BloodLinkModel(Long id, String name, String bloodGroup, String city, String phoneNumber, String email, Integer age, String gender, LocalDate lastDonationDate, boolean available) {
+    public BloodLinkModel(Long id, String name, String bloodGroup, String city, String phoneNumber, String email, Integer age, String gender, LocalDate lastDonationDate, Boolean available) {
         this.id = id;
         this.name = name;
         this.bloodGroup = bloodGroup;
@@ -61,7 +62,7 @@ public class BloodLinkModel {
         this.age = age;
         this.gender = gender;
         this.lastDonationDate = lastDonationDate;
-        this.available = available;
+        this.available = (available != null) ? available : true;
     }
 
     public Long getId() {
@@ -146,17 +147,21 @@ public class BloodLinkModel {
     }
 
     // Dynamic evaluation: unavailable if within 90 days from last donation
-    public boolean isAvailable() {
+    public Boolean isAvailable() {
         if (lastDonationDate != null) {
             long daysPassed = ChronoUnit.DAYS.between(lastDonationDate, LocalDate.now());
             if (daysPassed < 90) {
                 return false;
             }
         }
-        return available;
+        return available != null ? available : true;
     }
 
-    public void setAvailable(boolean available) {
-        this.available = available;
+    public Boolean getAvailable() {
+        return isAvailable();
+    }
+
+    public void setAvailable(Boolean available) {
+        this.available = (available != null) ? available : true;
     }
 }
