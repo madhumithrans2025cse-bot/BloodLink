@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BloodLink - Donor Management & Availability Dashboard</title>
+  <meta name="description" content="Manage blood donors, view inventory statistics by blood group, search by category and donation date, and track 90-day cooldown periods.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="index.css">
+</head>
+<body>
+
+  <!-- Top Navigation Header -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand">
+        <div class="logo-icon">
+          <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" fill="#dc2626" stroke="#ef4444" />
+            <path d="M12 7.5v6M9 10.5h6" stroke="#ffffff" stroke-width="2" stroke-linecap="round" />
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h1>BloodLink <span>Portal</span></h1>
+          <p class="brand-subtitle">Emergency Donor Registry & Live Cooldown Tracker</p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <button id="btnRefreshData" class="btn btn-secondary" title="Reload live database data">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Refresh Data
+        </button>
+        <button id="btnOpenRegisterModal" class="btn btn-primary">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          Register Donor
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="main-container">
+
+    <!-- Metrics Cards Row -->
+    <section class="metrics-grid">
+      <div class="metric-card card-total">
+        <div class="metric-header">
+          <span class="metric-label">Total Donors</span>
+          <div class="metric-icon total-icon">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+          </div>
+        </div>
+        <div class="metric-value" id="statTotalDonors">0</div>
+        <div class="metric-footer">Registered in system</div>
+      </div>
+
+      <div class="metric-card card-available">
+        <div class="metric-header">
+          <span class="metric-label">Available Now</span>
+          <div class="metric-icon available-icon">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+              <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+          </div>
+        </div>
+        <div class="metric-value text-green" id="statAvailableDonors">0</div>
+        <div class="metric-footer">Eligible to donate today</div>
+      </div>
+
+      <div class="metric-card card-cooldown">
+        <div class="metric-header">
+          <span class="metric-label">In 90-Day Cooldown</span>
+          <div class="metric-icon cooldown-icon">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+          </div>
+        </div>
+        <div class="metric-value text-amber" id="statCooldownDonors">0</div>
+        <div class="metric-footer">Resting after donation</div>
+      </div>
+
+      <div class="metric-card card-rate">
+        <div class="metric-header">
+          <span class="metric-label">Availability Rate</span>
+          <div class="metric-icon rate-icon">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="20" x2="18" y2="10"></line>
+              <line x1="12" y1="20" x2="12" y2="4"></line>
+              <line x1="6" y1="20" x2="6" y2="14"></line>
+            </svg>
+          </div>
+        </div>
+        <div class="metric-value" id="statAvailabilityRate">0%</div>
+        <div class="metric-footer">Readiness for emergencies</div>
+      </div>
+    </section>
+
+    <!-- Blood Group Inventory Grid -->
+    <section class="blood-groups-section">
+      <div class="section-title-wrap">
+        <h2>Donors by Blood Group</h2>
+        <span class="badge-hint">Click any group to filter the registry</span>
+      </div>
+      <div class="blood-chips-grid" id="bloodChipsGrid">
+        <!-- Rendered dynamically by index.js -->
+      </div>
+    </section>
+
+    <!-- Search & Filter Control Panel -->
+    <section class="search-panel">
+      <div class="panel-header">
+        <div class="panel-title">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <h3>Search & Filter Registry</h3>
+        </div>
+        <span id="activeFilterBadge" class="filter-count-badge">Showing All Donors</span>
+      </div>
+
+      <div class="filter-controls">
+        <!-- Quick search by text -->
+        <div class="form-group flex-2">
+          <label for="searchTextInput">Search Query</label>
+          <div class="input-with-icon">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input type="text" id="searchTextInput" placeholder="Search by donor name, city, phone...">
+          </div>
+        </div>
+
+        <!-- Category: Blood Group -->
+        <div class="form-group flex-1">
+          <label for="filterBloodGroup">Blood Category</label>
+          <select id="filterBloodGroup">
+            <option value="">All Blood Groups</option>
+            <option value="A+">A+ (A Positive)</option>
+            <option value="A-">A- (A Negative)</option>
+            <option value="B+">B+ (B Positive)</option>
+            <option value="B-">B- (B Negative)</option>
+            <option value="AB+">AB+ (AB Positive)</option>
+            <option value="AB-">AB- (AB Negative)</option>
+            <option value="O+">O+ (O Positive)</option>
+            <option value="O-">O- (O Negative)</option>
+          </select>
+        </div>
+
+        <!-- Availability Filter -->
+        <div class="form-group flex-1">
+          <label for="filterAvailability">Status Filter</label>
+          <select id="filterAvailability">
+            <option value="all">All Donors</option>
+            <option value="available">Available Only</option>
+            <option value="cooldown">In Cooldown (&lt;90 days)</option>
+          </select>
+        </div>
+
+        <!-- Date Filter: Last Donation Date -->
+        <div class="form-group flex-1">
+          <label for="filterDonationDate">Donated On or After</label>
+          <input type="date" id="filterDonationDate">
+        </div>
+
+        <!-- Filter Action Buttons -->
+        <div class="filter-buttons">
+          <button id="btnApplyFilter" class="btn btn-dark">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+            </svg>
+            Apply
+          </button>
+          <button id="btnResetFilter" class="btn btn-outline" title="Clear all filters">
+            Reset
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Donors Table Section -->
+    <section class="donors-table-container">
+      <div class="table-header">
+        <div class="table-title">
+          <h3>Registered Donors Directory</h3>
+          <span class="table-count" id="tableResultCount">0 donors found</span>
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="donors-table" id="donorsTable">
+          <thead>
+            <tr>
+              <th>Donor</th>
+              <th>Blood Group</th>
+              <th>City</th>
+              <th>Contact Info</th>
+              <th>Last Donation Date</th>
+              <th>Status</th>
+              <th class="text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="donorsTableBody">
+            <!-- Populated via JavaScript -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Empty State Indicator -->
+      <div id="emptyState" class="empty-state hidden">
+        <div class="empty-icon">
+          <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="8" y1="12" x2="16" y2="12"></line>
+          </svg>
+        </div>
+        <h4>No Donors Found</h4>
+        <p>No volunteer donors matched the current category or date criteria.</p>
+        <button id="btnEmptyReset" class="btn btn-secondary">Clear Filters</button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Register Donor Modal -->
+  <div id="registerModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <h3 id="modalTitle">Register Volunteer Donor</h3>
+          <p>Add a new donor into the emergency registry.</p>
+        </div>
+        <button id="btnCloseModal" class="btn-close" aria-label="Close dialog">&times;</button>
+      </div>
+
+      <form id="donorForm" class="modal-form">
+        <div class="form-row">
+          <div class="form-group flex-2">
+            <label for="inputName">Full Name *</label>
+            <input type="text" id="inputName" required placeholder="e.g. John Doe">
+          </div>
+          <div class="form-group flex-1">
+            <label for="inputBloodGroup">Blood Group *</label>
+            <select id="inputBloodGroup" required>
+              <option value="" disabled selected>Select group</option>
+              <option value="A+">A+</option>
+              <option value="A-">A-</option>
+              <option value="B+">B+</option>
+              <option value="B-">B-</option>
+              <option value="AB+">AB+</option>
+              <option value="AB-">AB-</option>
+              <option value="O+">O+</option>
+              <option value="O-">O-</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group flex-1">
+            <label for="inputCity">City / Location *</label>
+            <input type="text" id="inputCity" required placeholder="e.g. Chennai">
+          </div>
+          <div class="form-group flex-1">
+            <label for="inputPhone">Phone Number *</label>
+            <input type="tel" id="inputPhone" required placeholder="e.g. 9876543210">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group flex-1">
+            <label for="inputEmail">Email Address</label>
+            <input type="email" id="inputEmail" placeholder="e.g. donor@example.com">
+          </div>
+          <div class="form-group flex-half">
+            <label for="inputAge">Age</label>
+            <input type="number" id="inputAge" min="18" max="65" placeholder="e.g. 24">
+          </div>
+          <div class="form-group flex-half">
+            <label for="inputGender">Gender</label>
+            <select id="inputGender">
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="inputLastDonation">Last Donation Date</label>
+          <input type="date" id="inputLastDonation">
+          <small class="form-help">Leave empty if the donor has never donated. If donated within 90 days, cooldown will activate automatically.</small>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" id="btnCancelModal" class="btn btn-outline">Cancel</button>
+          <button type="submit" id="btnSubmitDonor" class="btn btn-primary">
+            Register Donor
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
+  <script src="index.js"></script>
+</body>
+</html>

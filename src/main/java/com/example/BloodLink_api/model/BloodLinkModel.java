@@ -13,7 +13,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "BloodLink")
+@Table(name = "bloodlink")
 public class BloodLinkModel {
 
     @Id
